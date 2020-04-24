@@ -1,0 +1,5 @@
+localhost,exports,export1,/home/mount1,oracle,oinstall,0755,
+localhost,exports,export2,/home/mount2,oracle,oinstall,0755,
+localhost,exports,export3,/home/mount3,oracle,oinstall,0755,
+localhost,exports,export4,/home/mount4,oracle,oinstall,0755,"actimeo=0"
+localhost,exports,export5,/home/mount5,oracle,oinstall,0755,

@@ -1,0 +1,4 @@
+---
+variables:
+    skipchars: 'OI'
+    skipchars2: 'OI'
