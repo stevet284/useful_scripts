@@ -1,0 +1,9 @@
+---
+# tasks file for ./roles/kub_node
+- name: config for kubernetes node
+  include: config.yml
+  tags: kube
+
+- name: packages for kubernetes node
+  include: packages.yml
+  tags: kube

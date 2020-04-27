@@ -1,0 +1,10 @@
+---
+- hosts: all
+  remote_user: root
+  roles:
+    - common
+
+- hosts: kubernetes
+  remote_user: root
+  roles:
+    - kub_node

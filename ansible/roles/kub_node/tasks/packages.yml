@@ -1,0 +1,47 @@
+---
+- name: Add docker-ce repository
+  yum_repository:
+    name: Docker_CE_Stable
+    description: Docker_CE_Stable
+    file: docker-ce
+    baseurl: https://download.docker.com/linux/centos/7/x86_64/stable
+    gpgcheck: true
+    gpgkey: https://download.docker.com/linux/centos/gpg
+
+- name: Add Kubernetes repository
+  yum_repository:
+    name: kubernetes
+    description: kubernetes
+    file: kubernetes
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+    gpgcheck: true
+    gpgkey:
+      - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+      - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+
+- name: install dockerCE
+  package:
+    name: docker-ce
+    state: installed
+    notify: configure_docker_c_group_driver
+
+- name: enable docker service
+  service:
+    name: docker
+    enabled: yes
+    state: running
+ 
+- name: install kubernetes
+  package:
+    name: "{{ item }}"
+  with_items:
+    - kubelet
+    - kubeadm
+    - kubectl
+
+- name: enable kubelet service
+  service:
+    name: kubelet
+    enabled: yes
+    state: stopped
+  

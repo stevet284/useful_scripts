@@ -1,0 +1,7 @@
+---
+# handlers file for common
+- name: restart_networking
+  service:
+    name:  NetworkManager
+    state: restarted
+  listen: restart_networking

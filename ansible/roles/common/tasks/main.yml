@@ -1,0 +1,7 @@
+---
+# tasks file for common
+- name: config for steve
+  include: config.yml
+
+- name: packages for steve
+  include: packages.yml

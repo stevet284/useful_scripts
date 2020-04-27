@@ -1,0 +1,9 @@
+---
+- name: standard packages
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - net-tools
+    - bind-utils
+    - epel-release

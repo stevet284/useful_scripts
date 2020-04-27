@@ -1,0 +1,41 @@
+---
+- name: Putty key
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ lookup('file', 'steve_putty.pub') }}"
+
+- name: vm7 key
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ lookup('file', 'vm7.pub') }}"
+
+- debug:
+    var: ansible_default_ipv4.address
+
+- debug:
+    var: inventory_hostname
+
+- name: Set hostname
+  command: hostnamectl set-hostname {{ inventory_hostname }}
+  when: inventory_hostname != ansible_fqdn
+
+- name: set static IP
+  ini_file:
+    path: /etc/sysconfig/network-scripts/ifcfg-eth0
+    section: 
+    option: "{{ item.name }}"
+    value: "{{ item.value }}"
+    no_extra_spaces: true
+  with_items:
+  - { name: 'IPADDR', value: "{{ ansible_default_ipv4.address }}" }
+  - { name: 'BOOTPROTO', value: 'static' }
+  - { name: 'PREFIX', value: '24' }
+  - { name: 'GATEWAY', value: '192.168.229.2' }
+  - { name: 'DNS1', value: '192.168.229.2' }
+  - { name: 'NM_MANAGED', value: 'YES' }
+  - { name: 'PEERDNS', value: 'YES' }
+  notify: restart_networking
+  tags:
+      - ip
