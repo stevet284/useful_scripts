@@ -7,3 +7,9 @@
     - net-tools
     - bind-utils
     - epel-release
+
+- name: update the system
+  yum:
+    name: "*"
+    state: latest
+  when: patch == true

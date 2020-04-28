@@ -15,8 +15,7 @@
 
 - name: disabled selinux
   command: setenforce 0
-  register: setenforce
-  failed_when:  "'SELinux is disabled' not in setenforce.stderr"
+  ignore_errors: true
 
 - name: disable selinux config
   ini_file:
@@ -27,7 +26,8 @@
     no_extra_spaces: true
 
 - name: Enable the br_netfilter module for cluster communication
-  command: modprobe br_netfilter
+  shell: /usr/sbin/modprobe br_netfilter
+
 
 - name: Enable bridge-nf-call-iptables
   command: echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables

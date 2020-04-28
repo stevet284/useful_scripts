@@ -23,13 +23,13 @@
   package:
     name: docker-ce
     state: installed
-    notify: configure_docker_c_group_driver
+  notify: configure_docker_c_group_driver
 
 - name: enable docker service
   service:
     name: docker
     enabled: yes
-    state: running
+    state: started
  
 - name: install kubernetes
   package:
