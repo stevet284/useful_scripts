@@ -1,5 +1,3 @@
-#all:
- # children:
-    kubernetes:
-      hosts:
-        worker1.192.168.229.135.nip.io:
+kubernetes:
+  hosts:
+    worker1.192.168.229.139.nip.io:
