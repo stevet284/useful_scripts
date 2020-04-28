@@ -4,23 +4,3 @@
   command: firewall-cmd --reload
   listen: reload_firewall
 
-- name: configure_docker_c_group_driver
-  lineinfile:
-    path: /usr/lib/systemd/system/docker.service
-    regexp: "^ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock"
-    line: "ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock --exec-opt native.cgroupdriver=systemd" 
-  listen: configure_docker_c_group_driver
-  notify: systemctl_daemon_reload
-
-- name: systemctl daemon-reload
-  command: systemctl daemon-reload
-  listen: systemctl_daemon_reload
-  notify: restart_docker
-
-- name: restart_docker
-  service:
-    name: docker
-    enabled: yes
-    state: restarted
-  listen: restart_docker
-

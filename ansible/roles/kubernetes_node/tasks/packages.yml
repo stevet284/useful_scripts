@@ -23,14 +23,20 @@
   package:
     name: docker-ce
     state: installed
-  notify: configure_docker_c_group_driver
 
-- name: enable docker service
+- name: configure_docker_c_group_driver
+  lineinfile:
+    path: /usr/lib/systemd/system/docker.service
+    regexp: "^ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock"
+    line: "ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock --exec-opt native.cgroupdriver=systemd"
+
+
+- name: restart_docker
   service:
     name: docker
     enabled: yes
-    state: started
- 
+    state: restarted
+
 - name: install kubernetes
   package:
     name: "{{ item }}"
@@ -38,6 +44,9 @@
     - kubelet
     - kubeadm
     - kubectl
+
+- name: systemctl daemon-reload
+  command: systemctl daemon-reload
 
 - name: enable kubelet service
   service:

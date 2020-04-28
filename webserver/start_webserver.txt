@@ -1,4 +1,3 @@
 
-
-docker run -p 80:80 -d --name webserver --mount type=bind,source=/root/useful_scripts/webserver,target=/usr/share/nginx/html nginx nginx
+docker run -p 80:80 -d --name webserver --mount type=bind,source=/root/useful_scripts/webserver,target=/usr/share/nginx/html nginx
 

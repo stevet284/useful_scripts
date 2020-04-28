@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: examplepod
-  namespace: pod-example
+#  namespace: pod-example
 spec:
   volumes:
   - name: html
