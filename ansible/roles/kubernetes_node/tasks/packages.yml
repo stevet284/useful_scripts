@@ -45,12 +45,17 @@
     - kubeadm
     - kubectl
 
-- name: systemctl daemon-reload
-  command: systemctl daemon-reload
-
 - name: enable kubelet service
   service:
     name: kubelet
     enabled: yes
     state: stopped
-  
+
+- name: config fix no1 for kubelet
+  lineinfile:
+    path: /etc/sysconfig/kubelet
+    regexp: "^KUBELET_EXTRA_ARGS="
+    line: "KUBELET_EXTRA_ARGS=--runtime-cgroups=/systemd/system.slice --kubelet-cgroups=/systemd/system.slice"
+
+- name: systemctl daemon-reload
+  command: systemctl daemon-reload

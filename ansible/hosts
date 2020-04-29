@@ -1,5 +1,6 @@
 kubernetes:
   hosts:
 #    centos7.192.168.229.130.nip.io:
-    worker1.192.168.229.139.nip.io:
-    worker2.192.168.229.136.nip.io:
+#    master.192.168.229.139.nip.io:
+    worker1.192.168.229.140.nip.io:
+#    worker2.192.168.229.136.nip.io:
