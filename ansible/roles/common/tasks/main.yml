@@ -1,7 +1,11 @@
 ---
 # tasks file for common
-- name: config for steve
-  include: config.yml
 
-- name: packages for steve
-  include: packages.yml
+- name: config for for all distos
+  include: linux.yml
+
+- name: disto specific config
+  include: config-{{ ansible_distribution }}.yml
+
+#- name: packages for steve
+#  include: packages.yml

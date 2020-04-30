@@ -5,3 +5,8 @@
     name:  NetworkManager
     state: restarted
   listen: restart_networking
+
+- name: rename_00-installer-config
+  command: "mv /etc/netplan/00-installer-config.yaml /etc/netplan/00-installer-config.old"
+  listen: rename_00-installer-config
+  ignore_errors: true

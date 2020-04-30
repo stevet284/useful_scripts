@@ -12,16 +12,23 @@
     key: "{{ lookup('file', 'vm7.pub') }}"
 
 - debug:
-    var: ansible_default_ipv4.address
+    var: ansible_fqdn
 
 - debug:
     var: inventory_hostname
 
-- name: Set hostname
+- name: Set hostname (Redhat)
   command: hostnamectl set-hostname {{ inventory_hostname }}
-  when: inventory_hostname != ansible_fqdn
+  when: inventory_hostname != ansible_fqdn and ansible_distribution == 'Redhat'
 
-- name: set static IP
+- name: Set hostname (Ubuntu)
+  lineinfile:
+    path: /etc/hostname
+    regexp: "{{ ansible_fqdn }}"
+    line: "{{ inventory_hostname }}"
+  when: inventory_hostname != ansible_fqdn and ansible_distribution == 'Ubuntu'
+
+- name: set static IP (Redhat)
   ini_file:
     path: /etc/sysconfig/network-scripts/ifcfg-eth0
     section: 
@@ -32,10 +39,17 @@
   - { name: 'IPADDR', value: "{{ ansible_default_ipv4.address }}" }
   - { name: 'BOOTPROTO', value: 'static' }
   - { name: 'PREFIX', value: '24' }
-  - { name: 'GATEWAY', value: '192.168.229.2' }
-  - { name: 'DNS1', value: '192.168.229.2' }
+  - { name: 'GATEWAY', value: "{{ ansible_default_ipv4.gateway }}" }
+  - { name: 'DNS1', value: "{{ ansible_default_ipv4.gateway }}" }
   - { name: 'NM_MANAGED', value: 'YES' }
   - { name: 'PEERDNS', value: 'YES' }
   notify: restart_networking
   tags:
       - ip
+  when: ansible_distribution == 'Redhat'
+
+- name: set static IP (Ubuntu)
+  template:
+    src: 50-cloud-init.j2
+    dest: /etc/netplan/50-cloud-init.yaml
+  when: ansible_distribution == 'Ubuntu'
