@@ -1,0 +1,11 @@
+---
+- name: Set hostname (Ubuntu)
+  lineinfile:
+    path: /etc/hostname
+    regexp: "{{ ansible_fqdn }}"
+    line: "{{ inventory_hostname }}"
+
+- name: set static IP (Ubuntu)
+  template:
+    src: 50-cloud-init.j2
+    dest: /etc/netplan/50-cloud-init.yaml

@@ -1,0 +1,61 @@
+---
+- name: Get the Docker gpg key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Get the Kubernetes gpg key
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add docker-ce repository
+  apt_repository:
+#    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+    repo: deb https://download.docker.com/linux/ubuntu bionic stable
+    filename: dockerCE
+
+- name: Add Kubernetes repository
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    filename: Kubernetes
+
+- name: install dockerCE and Kubernetes
+  apt:
+    name: ['docker-ce=18.06.1~ce~3-0~ubuntu', 'kubelet=1.15.7-00',
+'kubeadm=1.15.7-00', 'kubectl=1.15.7-00']
+    state: present
+
+- name: Add the iptables rule to sysctl.conf
+  ini_file:
+    path: /etc/sysctl.conf
+    section:
+    option: net.bridge.bridge-nf-call-iptables
+    value: 1
+    no_extra_spaces: true
+
+- name: Enable iptables immediately
+  command: sysctl -p
+
+- name: create /etc/docker
+  file:
+    path: /etc/docker
+    state: directory
+
+- name: configure_docker_c_group_driver
+  template:
+    src: daemon.j2
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+
+- name: systemctl daemon-reload
+  command: systemctl daemon-reload
+
+- name: restart_docker
+  service:
+    name: docker
+    enabled: yes
+    state: restarted
+
+

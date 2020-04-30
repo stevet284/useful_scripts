@@ -1,0 +1,12 @@
+---
+- name: Putty key
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ lookup('file', 'steve_putty.pub') }}"
+
+- name: vm7 key
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ lookup('file', 'vm7.pub') }}"

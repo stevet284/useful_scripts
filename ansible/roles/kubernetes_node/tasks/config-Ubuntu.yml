@@ -1,0 +1,10 @@
+---
+- name: Disable swap to prevent memory allocation issues (Ubuntu)
+  command: swapoff -a
+
+- name: Disable swap in fstab
+  lineinfile:
+    path: /etc/fstab
+    regexp: "^/swap.img"
+    line: "#/swap.img       none    swap    sw      0       0"
+

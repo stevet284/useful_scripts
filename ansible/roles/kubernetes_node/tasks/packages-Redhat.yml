@@ -1,0 +1,64 @@
+---
+- name: Add docker-ce repository
+  yum_repository:
+    name: Docker_CE_Stable
+    description: Docker_CE_Stable
+    file: docker-ce
+    baseurl: https://download.docker.com/linux/centos/7/x86_64/stable
+    gpgcheck: true
+    gpgkey: https://download.docker.com/linux/centos/gpg
+
+- name: Add Kubernetes repository
+  yum_repository:
+    name: kubernetes
+    description: kubernetes
+    file: kubernetes
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+    gpgcheck: true
+    gpgkey:
+      - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+      - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+
+- name: install dockerCE
+  package:
+    name: docker-ce
+    state: installed
+
+- name: configure_docker_c_group_driver
+  lineinfile:
+    path: /usr/lib/systemd/system/docker.service
+    regexp: "^ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock"
+    line: "ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock --exec-opt native.cgroupdriver=systemd"
+
+
+- name: restart_docker
+  service:
+    name: docker
+    enabled: yes
+    state: restarted
+
+- name: install kubernetes
+  package:
+    name: "{{ item }}"
+  with_items:
+    - kubelet
+    - kubeadm
+    - kubectl
+
+- name: systemctl daemon-reload
+  command: systemctl daemon-reload
+
+- name: enable kubelet service
+  service:
+    name: kubelet
+    enabled: yes
+    state: stopped
+
+- name: config fix no1 for kubelet
+  lineinfile:
+    path: /etc/sysconfig/kubelet
+    regexp: "^KUBELET_EXTRA_ARGS="
+    line: "KUBELET_EXTRA_ARGS=--runtime-cgroups=/systemd/system.slice --kubelet-cgroups=/systemd/system.slice"
+
+- name: systemctl daemon-reload for a second time
+  command: systemctl daemon-reload
