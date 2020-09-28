@@ -1,0 +1,4 @@
+---
+all:
+  hosts:
+    centos7.192.168.229.130.nip.io:
