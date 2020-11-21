@@ -14,20 +14,28 @@ starttmux() {
 
     local hosts=( $HOSTS )
 
-
-    tmux new-window "ssh ${hosts[0]}"
+    tmux new-session -d "ssh $user@${hosts[0]}" 2>/dev/null
     unset hosts[0];
     for i in "${hosts[@]}"; do
-        tmux split-window -h  "ssh $i"
+        tmux split-window -h  "ssh $user@$i"
         tmux select-layout tiled > /dev/null
     done
     tmux select-pane -t 0
     tmux set-window-option synchronize-panes on > /dev/null
 
+ #Command Aliases avaliable in tmux 2.4 onwards
+ #   tmux set-option -s command-alias[10] sy='set synchronize-panes on'    
+ #   tmux set-option -s command-alias[11] sn='set synchronize-panes off'
+
+
 }
 
 HOSTS=${HOSTS:=$*}
-tmux new-session -ds placeholder 2>/dev/null
+
+read -p "Username ? [$(whoami)]" user
+[[ $user == "" ]] && user=$(whoami)
+
+echo "connecting as $user"
 
 starttmux
 tmux attach
