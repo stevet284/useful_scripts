@@ -10,3 +10,15 @@
     user: root
     state: present
     key: "{{ lookup('file', 'vm7.pub') }}"
+
+- debug:
+    var:  facter_os.release.major 
+
+- debug:
+    var:  facter_os.release.minor
+
+
+- name: Check OS version
+  fail:
+    msg: "O.S version meets requirements"
+  when: facter_os.release.major | int  == 7 and facter_os.release.minor | int < 7

@@ -1,6 +1,9 @@
 ---
 # tasks file for common
 
+- debug:
+    var: env
+      
 - name: config for for all distos
   include: linux.yml
 

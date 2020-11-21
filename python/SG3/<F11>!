@@ -1,0 +1,11 @@
+#!/bin/env python
+import re , json
+
+uuid="FF09AF73-429D-4CEA-853B-30239279FE2A"
+
+with (open("./audit.log", 'r')) as f:
+	for line in f.readlines():
+#		print line
+	matches=re.search(uuid, line)
+
+print matches
