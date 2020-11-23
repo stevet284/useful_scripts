@@ -1,5 +1,9 @@
 
 #!/bin/bash
+# Tmux wrapper script
+# Best run on RHEL8 which has a newer version of tmux (supports command aliases)
+# history:
+# @(#) 1.0.0 - 20/Nov/2020 - ST: First BC Version
 
 starttmux() {
     if [ -z "$HOSTS" ]; then
@@ -18,10 +22,9 @@ starttmux() {
     tmux select-pane -t 0
     tmux set-window-option synchronize-panes on > /dev/null
 
- #Command Aliases avaliable in tmux 2.4 onwards
- #   tmux set-option -s command-alias[10] sy='set synchronize-panes on'
- #   tmux set-option -s command-alias[11] sn='set synchronize-panes off'
-
+#Command Aliases avaliable in tmux 2.4 onwards
+tmux set-option -s command-alias[10] sy='set synchronize-panes on' > /dev/null 2>&1
+tmux set-option -s command-alias[11] sn='set synchronize-panes off' > /dev/null 2>&1
 
 }
 
@@ -51,8 +54,11 @@ printf "\n\nOpening windows on the following hosts: $HOSTS\n\\n"
 read -p "Username ? [$(whoami)]" user
 [[ $user == "" ]] && user=$(whoami)
 
-tmux new-session -ds placeholder 2>/dev/null
+#tmux new-session -ds placeholder 2>/dev/null
 
 starttmux
 
 tmux attach
+
+
+
