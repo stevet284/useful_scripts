@@ -13,11 +13,11 @@ starttmux() {
     fi
 
     local hosts=( $HOSTS )
-
-    tmux new-session -d "ssh $user@${hosts[0]}" 2>/dev/null
+    ssh_opts="StrictHostKeyChecking=no"
+    tmux new-session -d "ssh $user@${hosts[0]} -o $ssh_opts 2>/dev/null"
     unset hosts[0];
     for i in "${hosts[@]}"; do
-        tmux split-window -h  "ssh $user@$i"
+        tmux split-window -h  "ssh $user@$i -o $ssh_opts"
         tmux select-layout tiled > /dev/null
     done
     tmux select-pane -t 0
