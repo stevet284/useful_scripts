@@ -1,10 +1,9 @@
+
 #!/bin/bash
-# ssh-multi
-# D.Kovalov
-# Based on http://linuxpixies.blogspot.jp/2011/06/tmux-copy-mode-and-how-to-control.html
-
-# a script to ssh multiple servers over multiple tmux panes
-
+# Tmux wrapper script
+# Best run on RHEL8 which has a newer version of tmux (supports command aliases)
+# history:
+# @(#) 1.0.0 - 20/Nov/2020 - ST: First BC Version
 
 starttmux() {
     if [ -z "$HOSTS" ]; then
@@ -23,19 +22,43 @@ starttmux() {
     tmux select-pane -t 0
     tmux set-window-option synchronize-panes on > /dev/null
 
- #Command Aliases avaliable in tmux 2.4 onwards
- #   tmux set-option -s command-alias[10] sy='set synchronize-panes on'    
- #   tmux set-option -s command-alias[11] sn='set synchronize-panes off'
-
+#Command Aliases avaliable in tmux 2.4 onwards
+tmux set-option -s command-alias[10] sy='set synchronize-panes on' > /dev/null 2>&1
+tmux set-option -s command-alias[11] sn='set synchronize-panes off' > /dev/null 2>&1
 
 }
 
-HOSTS=${HOSTS:=$*}
+usage() {
+printf "\n\nusage:\ntm host1 host2 host3 ....\n"
+echo "tm -f filename"
+echo "tm -hn <hn query>"
+exit 1
 
+}
+
+option=$1
+
+if [[ $option = "-f" ]] || [[ $option = "--file" ]] ;then
+  HOSTS=$(cat $2 | tr "\n" " ")
+elif [[ $option = "-hn" ]] || [[ $option = "--hn" ]]; then
+  shift 1
+  HOSTS=$(hn $* | tr "\n" " ")
+elif [[ $option = "--help" ]] || [[ $option = "-h" ]] || [[ $option = "" ]]; then
+  usage
+else
+HOSTS=${HOSTS:=$*}
+fi
+
+
+printf "\n\nOpening windows on the following hosts: $HOSTS\n\\n"
 read -p "Username ? [$(whoami)]" user
 [[ $user == "" ]] && user=$(whoami)
 
-echo "connecting as $user"
+#tmux new-session -ds placeholder 2>/dev/null
 
 starttmux
+
 tmux attach
+
+
+
