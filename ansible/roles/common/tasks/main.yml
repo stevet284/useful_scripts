@@ -5,7 +5,7 @@
     var: env
       
 - name: config for for all distos
-  include: linux.yml
+  include: config.yml
 
 - name: disto specific config
   include: config-{{ ansible_distribution }}.yml

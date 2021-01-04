@@ -17,9 +17,12 @@
 - debug:
     var: inventory_hostname
 
+- debug:
+    var: ansible_distribution
+
 - name: Set hostname (Redhat)
   command: hostnamectl set-hostname {{ inventory_hostname }}
-  when: inventory_hostname != ansible_fqdn and ansible_distribution == 'Redhat'
+  when: inventory_hostname != ansible_fqdn and (ansible_distribution == 'Redhat' or ansible_distribution == 'CentOS')
 
 - name: Set hostname (Ubuntu)
   lineinfile:
@@ -46,7 +49,7 @@
   notify: restart_networking
   tags:
       - ip
-  when: ansible_distribution == 'Redhat'
+  when: (ansible_distribution == 'Redhat' or ansible_distribution == 'CentOS')
 
 - name: set static IP (Ubuntu)
   template:

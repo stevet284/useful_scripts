@@ -1,0 +1,17 @@
+---
+all:
+  vars:
+    env: prod
+  children:
+    master:
+      vars:
+        env: dev
+      hosts:
+        centos8_1.192.168.229.128.nip.io:
+        centos8_2.192.168.229.132.nip.io:
+kubernetes:
+  hosts:
+#    worker2.192.168.229.146.nip.io:
+#    master.192.168.229.139.nip.io:
+#    worker1.192.168.229.140.nip.io:
+#    worker2.192.168.229.136.nip.io:

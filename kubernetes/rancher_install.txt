@@ -1,0 +1,129 @@
+
+https://rancher.com/docs/rancher/v2.x/en/installation/install-rancher-on-k8s/
+
+and
+
+https://medium.com/@swapnasagarpradhan/install-a-kubernetes-cluster-on-rhel8-with-conatinerd-b48b9257877a
+
+
+cat > /etc/modules-load.d/containerd.conf <<EOF
+overlay
+br_netfilter
+EOF
+modprobe overlay
+modprobe br_netfilter
+
+cat > /etc/sysctl.d/99-kubernetes-cri.conf <<EOF
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+
+#disable swap
+
+dnf install -y  yum-utils device-mapper-persistent-data lvm2
+
+dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repodnf 
+install containerd.io --allowerasing
+
+mkdir -p /etc/containerd
+containerd config default > /etc/containerd/config.toml
+systemctl enable containerd --now
+
+
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+
+#disable selinux and firewald & reboot
+
+dnf install -y kubelet kubeadm kubectl
+systemctl enable kubelet.service --now
+
+kubeadm init --pod-network-cidr=192.168.0.0/16
+
+
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 192.168.229.128:6443 --token kf45r6.d3pmilbzqurmumx1 \
+    --discovery-token-ca-cert-hash sha256:5b8009615948e2708a80f9c520d40dc03f3c78cf214a6ee5a8af3168cdb2cd5f
+
+
+
+
+
+
+create a normal user, add to sudoers:  kube
+
+su - kube
+
+    mkdir -p $HOME/.kube
+    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+Deploy Flannel.
+    kubectl apply -f #https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+Check the cluster state.
+    kubectl get pods --all-namespaces
+
+
+kubectl get pods --all-namespaces
+
+kubectl taint nodes --all node-role.kubernetes.io/master-
+
+kubectl create namespace "cert-manager"
+
+
+
+wget https://get.helm.sh/helm-v3.4.2-linux-amd64.tar.gz
+
+tar -xzvf helm-v3.4.2-linux-amd64.tar.gz
+
+mv linux-amd64/helm /usr/local/bin
+
+kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.crds.yaml
+
+helm repo add stable https://charts.helm.sh/stable
+
+# Create the namespace for cert-manager
+kubectl create namespace cert-manager
+
+# Add the Jetstack Helm repository
+helm repo add jetstack https://charts.jetstack.io
+
+helm install   cert-manager jetstack/cert-manager   --namespace cert-manager   --version v1.0.4
+
+helm repo add rancher-latest https://releases.rancher.com/server-charts/stable
+
+
+kubectl create namespace cattle-system
+
+#kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.0.4/cert-manager.crds.yaml
+
+ helm install rancher rancher-latest/rancher \
+   --namespace cattle-system \
+   --set hostname=rancher.192.168.229.128.nip.io
+
+
+
+kubectl -n cattle-system rollout status deploy/rancher
+
+#######
+
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+
+helm install my-release ingress-nginx/ingress-nginx
+
+
+#Add external IP:
+
+kubectl patch service my-release-ingress-nginx-controller -p '{"spec": {"type": "LoadBalancer", "externalIPs":["192.168.229.128"]}}'
+

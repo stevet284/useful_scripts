@@ -1,0 +1,5 @@
+---
+# vars file for copy.rpms
+
+default_source: "/root/useful_scripts/ansible/source"
+default_dest: "/tmp/rpms"

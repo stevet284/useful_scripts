@@ -1,0 +1,8 @@
+---
+# tasks file for copy.rpms
+
+- name: Copy Rpms to temp dir
+  copy:
+    src: source
+    dest: dest
+

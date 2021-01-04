@@ -1,0 +1,15 @@
+---
+
+- hosts: localhost
+
+  vars_prompt:
+    - name: source
+      prompt: source_dir 
+      default: "{{default_source}}"
+
+    - name: dest
+      prompt: source_dir
+      default: "{{default_dest}}"
+
+  roles:
+     - copy.rpms
