@@ -1,0 +1,36 @@
+Normlay just this will do:
+
+#systemctl stop kubelet
+#  rm -f /etc/kubernetes/kubelet.conf /etc/kubernetes/pki/ca.crt
+#  kubeadm join 192.168.229.139:6443 --token u0gm6m.j3i8xrjv65f4zahy     --discovery-token-ca-cert-hash sha256:85570c94b861644e0b6ba5ddf643efeeb795e06e5a92695c9dbc118ee9c40dcc
+
+
+==========================================
+
+nodes:
+
+kubeadm reset
+
+systemctl stop kubelet
+kubeadm join <params>
+
+Master:
+
+kubeadm reset
+systemctl stop kubelet
+remove kub*
+remove docker-ce*
+
+rm -fr /var/lib/kublet  /etc/kubernetes  /var/lib/etcd/*
+
+rm -fr /var/lib/docker
+
+Then follow normal install procedure.
+
+on master create a new token:
+
+kubeadm token create --print-join-command
+W0427 08:56:31.963672   25538 configset.go:202] WARNING: kubeadm cannot validate component configs for API groups [kubelet.config.k8s.io kubeproxy.config.k8s.io]
+kubeadm join 192.168.229.130:6443 --token 94ldyv.seawut146omytlsq     --discovery-token-ca-cert-hash sha256:767aa5beffc76d03ac11197a6f3903c2ed7432aea2ea579c15e4976235c6bd0f
+
+

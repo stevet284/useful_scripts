@@ -1,0 +1,260 @@
+firewall-cmd --permanent --add-port=6443/tcp
+firewall-cmd --permanent --add-port=2379-2380/tcp
+firewall-cmd --permanent --add-port=10250/tcp
+firewall-cmd --permanent --add-port=10251/tcp
+firewall-cmd --permanent --add-port=10252/tcp
+firewall-cmd --permanent --add-port=10255/tcp
+firewall-cmd --reload
+
+
+kubectl get nodes -o wide --show-labels
+
+kubectl get pods --all-namespaces -o wide
+kubectl get pods --all-namespaces --show-labels -o wide
+
+
+
+CREATE A POD WITH 2 CONTAINERS and a shared volume:
+
+kubectl create namespace pod-example
+ vi pod-example.yml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: examplepod
+  namespace: pod-example
+spec:
+  volumes:
+  - name: html
+    emptyDir: {}
+  containers:
+  - name: webcontainer
+    image: nginx
+    volumeMounts:
+    - name: html
+      mountPath: /usr/share/nginx/html
+  - name: filecontainer
+    image: debian
+    volumeMounts:
+    - name: html
+      mountPath: /html
+    command: ["/bin/sh", "-c"]
+    args:
+      - while true; do
+         date >> /html/index.html;
+         sleep 1;
+        done
+
+
+kubectl create -f pod-example.yml
+
+ kubectl --namespace=pod-example get pods -o wide
+
+
+CONNECTING TO A POD:
+
+$ kubectl --namespace=pod-example get pods
+NAME         READY   STATUS    RESTARTS   AGE
+examplepod   2/2     Running   0          34m
+ 
+$ kubectl exec -it examplepod -- /bin/bash
+
+
+PODs can communicate with other containers in the same namespace using 
+ther short names.
+
+CHANGE CONTEXT:
+ kubectl config set-context --current --namespace=steve1
+
+
+REPLICa SETS
+A replica set is a set of pods that share the same label.
+
+Example yaml file to create a replicaset:
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: frontend
+  labels:
+    app: nginx
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels: 
+      tier: frontend
+    matchExpressions:
+      - {key: tier, operator: In, values: [frontend]}
+  template:
+    metadata:
+      labels:
+        app: nginx
+        tier: frontend
+    spec:
+      containers:
+      - name: nginx
+        image: darealmc/nginx-k8s:v1
+        ports:
+        - containerPort: 80
+
+kubectl scale rs/frontend --replicas=4
+
+kubectl config view --minify | grep namespace:
+    namespace: steve1
+
+kubectl delete -f replicas.yml
+
+
+kubeadm token create --print-join-command
+W0429 11:10:36.565864   11567 configset.go:202] WARNING: kubeadm cannot validate component configs for API groups [kubelet.config.k8s.io kubeproxy.config.k8s.io]
+kubeadm join 192.168.229.139:6443 --token ma3izp.pxyf8tm4m3czwsvs     --discovery-token-ca-cert-hash sha256:85570c94b861644e0b6ba5ddf643efeeb795e06e5a92695c9dbc118ee9c40dcc
+
+
+
+finxing this error:
+
+kubelet[29703]: E0429 15:57:26.321633   29703 summary_sys_containers.go:47] Failed to get system container stats for "/system.slice/docker.service": failed to get cgroup stats for "/system.slice/docker.service": failed to get container info for "/system.slice/docker.service": unknown container "/system.slice/docker.service"
+
+updated /etc/sysconfig/kubelet:
+
+KUBELET_EXTRA_ARGS=--runtime-cgroups=/systemd/system.slice --kubelet-cgroups=/systemd/system.slice
+
+
+Creating a service:
+
+cat service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-nodeport
+spec:
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+    nodePort: 30080
+  selector:
+    app: nginx
+
+after doing this you can connect to the pods using localhost:30080   from any node or the master.
+(didnt work well with centos, fine on Ubuntu)
+
+ kubectl get endpoints
+NAME             ENDPOINTS                                               AGE
+kubernetes       192.168.229.147:6443                                    98m
+nginx-nodeport   10.244.2.5:80,10.244.2.6:80,10.244.2.8:80 + 1 more...   81m
+
+
+kubectl expose deployment my-nginx --port 80 --type NodePort
+
+Testing:
+
+kubectl port-forward $pod_name 8081:80
+error: TYPE/NAME and list of ports are required for port-forward
+See 'kubectl port-forward -h' for help and examples
+[steve@master ~]$ kubectl port-forward nginx 8081:80
+Forwarding from 127.0.0.1:8081 -> 80
+Forwarding from [::1]:8081 -> 80
+Handling connection for 8081
+
+now from a new window you can curl localhost:8081
+
+LOADBALANCER SERVICE:
+
+$ cat lb.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-loadbalancer
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: nginx
+
+
+add it, extermal IP pending:
+
+$ cat lb.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-loadbalancer
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: nginx
+
+Add , but expernal IP pending:
+
+$ kubectl get services -w    NAME                 TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+kubernetes           ClusterIP      10.96.0.1       <none>        443/TCP        120m
+nginx-loadbalancer   LoadBalancer   10.97.243.173   <pending>     80:30327/TCP   5m19s
+
+
+Here is how you add an external IP:
+
+ $ kubectl patch service nginx-loadbalancer \
+-p '{"spec": {"type": "LoadBalancer", "externalIPs":["192.168.229.250"]}}'
+
+(I found this added the IP, but I could not access it)
+
+
+INGRESS:  This is a layer in from to services for routing requests to services:
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: service-ingress
+spec:
+  rules:
+  - host: kubeserve.example.com
+    http:
+      paths:
+      - backend:
+          serviceName: kubeserve2
+          servicePort: 80
+  - host: app.example.com
+    http:
+      paths:
+      - backend:
+          serviceName: nginx
+          servicePort: 80
+  - http:
+      paths:
+      - backend:
+          serviceName: httpd
+          servicePort: 80
+
+
+
+COREDNS:
+
+2 pods are created for coredns:
+
+kubectl get pods -n kube-system |grep core
+coredns-5644d7b6d9-rlt2x                                 1/1     Running   0          91m
+coredns-5644d7b6d9-rm6ht                                 1/1     Running   2          114m
+
+
+all pods can use coredns e.g. look up the name or IP of another Pod:
+
+kubectl exec busybox -- nslookup 10.244.2.9
+Server:    10.96.0.10
+Address 1: 10.96.0.10 kube-dns.kube-system.svc.cluster.local
+
+Name:      10.244.2.9
+Address 1: 10.244.2.9 10-244-2-9.nginx-loadbalancer.default.svc.cluster.local
+
+All services are also added to DNS e.g. 
+
+Name:      nginx-loadbalancer
+Address 1: 10.97.243.173 nginx-loadbalancer.default.svc.cluster.local
